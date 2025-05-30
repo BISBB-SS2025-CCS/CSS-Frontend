@@ -28,7 +28,8 @@ app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   try {
     const fetch = (await import('node-fetch')).default; // Dynamic import
-    const backendResponse = await fetch(`${BACKEND_API_URL}/login`, {
+    // Changed from /login to /api/login to match backend path
+    const backendResponse = await fetch(`${BACKEND_API_URL}/api/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
@@ -58,18 +59,37 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/register', async (req, res) => {
   const { username, password } = req.body;
   try {
-    const fetch = (await import('node-fetch')).default; // Dynamic import
-    const backendResponse = await fetch(`${BACKEND_API_URL}/register`, {
+    const fetch = (await import('node-fetch')).default;
+    const backendResponse = await fetch(`${BACKEND_API_URL}/api/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
     });
 
-    const data = await backendResponse.json();
+    // Log the full response for debugging
+    console.log('Backend Response Status:', backendResponse.status);
+    console.log('Backend Response Headers:', Object.fromEntries(backendResponse.headers.entries()));
+    const responseText = await backendResponse.text();
+    console.log('Backend Response Body:', responseText);
+
+    // Try to parse as JSON if possible
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      return res.status(500).json({ 
+        error: 'Backend returned non-JSON response',
+        response: responseText
+      });
+    }
+
     res.status(backendResponse.status).json(data);
   } catch (error) {
     console.error('Proxy register error:', error);
-    res.status(500).json({ error: 'Internal server error during registration proxy.' });
+    res.status(500).json({ 
+      error: 'Internal server error during registration proxy.',
+      details: error.message 
+    });
   }
 });
 
@@ -88,7 +108,7 @@ const proxyAuthenticate = async (req, res, next) => {
 // Shared handler logic for fetching incidents
 const handleGetIncidents = async (req, res) => {
   const { id } = req.params; // id will be undefined if called from the '/api/incidents' route
-  const url = id ? `${BACKEND_API_URL}/incidents/${id}` : `${BACKEND_API_URL}/incidents`;
+  const url = id ? `${BACKEND_API_URL}/api/incidents/${id}` : `${BACKEND_API_URL}/api/incidents`;
   try {
     const fetch = (await import('node-fetch')).default; // Dynamic import
     const backendResponse = await fetch(url, {
@@ -103,6 +123,16 @@ const handleGetIncidents = async (req, res) => {
       // Clear cookie if backend rejects token
       res.clearCookie('jwtToken');
       return res.status(backendResponse.status).json({ error: 'Session expired or invalid token. Please log in again.' });
+    }
+
+    // Add error handling for non-JSON responses
+    const contentType = backendResponse.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      console.error('Backend returned non-JSON response');
+      return res.status(500).json({ 
+        error: 'Backend service unavailable or incorrect response format',
+        details: await backendResponse.text()
+      });
     }
 
     const data = await backendResponse.json();
@@ -123,7 +153,7 @@ app.get('/api/incidents/:id', proxyAuthenticate, handleGetIncidents);
 app.post('/api/incidents', proxyAuthenticate, async (req, res) => {
   try {
     const fetch = (await import('node-fetch')).default; // Dynamic import
-    const backendResponse = await fetch(`${BACKEND_API_URL}/incidents`, {
+    const backendResponse = await fetch(`${BACKEND_API_URL}/api/incidents`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${req.backendToken}`,
@@ -149,7 +179,7 @@ app.put('/api/incidents/:id', proxyAuthenticate, async (req, res) => {
   const { id } = req.params;
   try {
     const fetch = (await import('node-fetch')).default; // Dynamic import
-    const backendResponse = await fetch(`${BACKEND_API_URL}/incidents/${id}`, {
+    const backendResponse = await fetch(`${BACKEND_API_URL}/api/incidents/${id}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${req.backendToken}`,
@@ -175,7 +205,7 @@ app.delete('/api/incidents/:id', proxyAuthenticate, async (req, res) => {
   const { id } = req.params;
   try {
     const fetch = (await import('node-fetch')).default; // Dynamic import
-    const backendResponse = await fetch(`${BACKEND_API_URL}/incidents/${id}`, {
+    const backendResponse = await fetch(`${BACKEND_API_URL}/api/incidents/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${req.backendToken}`,
