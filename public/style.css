@@ -1,0 +1,10 @@
+/* Minimal custom CSS, Tailwind handles most of the styling */
+body {
+    margin: 0;
+    padding: 0;
+}
+
+/* Ensure the modal is on top */
+#edit-modal, #confirm-modal {
+    z-index: 1000;
+}

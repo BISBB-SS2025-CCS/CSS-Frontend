@@ -1,8 +1,7 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
-const fetch = require('node-fetch'); // For making HTTP requests from Node.js
-const cookieParser = require('cookie-parser'); // For parsing and setting cookies
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -28,6 +27,7 @@ app.get('/', (req, res) => {
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   try {
+    const fetch = (await import('node-fetch')).default; // Dynamic import
     const backendResponse = await fetch(`${BACKEND_API_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -58,6 +58,7 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/register', async (req, res) => {
   const { username, password } = req.body;
   try {
+    const fetch = (await import('node-fetch')).default; // Dynamic import
     const backendResponse = await fetch(`${BACKEND_API_URL}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -73,7 +74,7 @@ app.post('/api/register', async (req, res) => {
 });
 
 // Middleware to check for JWT in cookie and attach to request for backend
-const proxyAuthenticate = (req, res, next) => {
+const proxyAuthenticate = async (req, res, next) => {
   const token = req.cookies.jwtToken; // Get token from HttpOnly cookie
 
   if (!token) {
@@ -84,11 +85,12 @@ const proxyAuthenticate = (req, res, next) => {
   next();
 };
 
-// Proxy for incident CRUD operations (protected by proxyAuthenticate)
-app.get('/api/incidents/:id?', proxyAuthenticate, async (req, res) => {
-  const { id } = req.params;
+// Shared handler logic for fetching incidents
+const handleGetIncidents = async (req, res) => {
+  const { id } = req.params; // id will be undefined if called from the '/api/incidents' route
   const url = id ? `${BACKEND_API_URL}/incidents/${id}` : `${BACKEND_API_URL}/incidents`;
   try {
+    const fetch = (await import('node-fetch')).default; // Dynamic import
     const backendResponse = await fetch(url, {
       method: 'GET',
       headers: {
@@ -106,13 +108,21 @@ app.get('/api/incidents/:id?', proxyAuthenticate, async (req, res) => {
     const data = await backendResponse.json();
     res.status(backendResponse.status).json(data);
   } catch (error) {
-    console.error('Proxy GET incidents error:', error);
+    console.error(`Proxy GET incidents error (path: ${req.path}):`, error);
     res.status(500).json({ error: 'Internal server error during incident fetch proxy.' });
   }
-});
+};
+
+// Proxy for incident CRUD operations (protected by proxyAuthenticate)
+// Route for getting all incidents
+app.get('/api/incidents', proxyAuthenticate, handleGetIncidents);
+
+// Route for getting a specific incident by ID
+app.get('/api/incidents/:id', proxyAuthenticate, handleGetIncidents);
 
 app.post('/api/incidents', proxyAuthenticate, async (req, res) => {
   try {
+    const fetch = (await import('node-fetch')).default; // Dynamic import
     const backendResponse = await fetch(`${BACKEND_API_URL}/incidents`, {
       method: 'POST',
       headers: {
@@ -138,6 +148,7 @@ app.post('/api/incidents', proxyAuthenticate, async (req, res) => {
 app.put('/api/incidents/:id', proxyAuthenticate, async (req, res) => {
   const { id } = req.params;
   try {
+    const fetch = (await import('node-fetch')).default; // Dynamic import
     const backendResponse = await fetch(`${BACKEND_API_URL}/incidents/${id}`, {
       method: 'PUT',
       headers: {
@@ -163,6 +174,7 @@ app.put('/api/incidents/:id', proxyAuthenticate, async (req, res) => {
 app.delete('/api/incidents/:id', proxyAuthenticate, async (req, res) => {
   const { id } = req.params;
   try {
+    const fetch = (await import('node-fetch')).default; // Dynamic import
     const backendResponse = await fetch(`${BACKEND_API_URL}/incidents/${id}`, {
       method: 'DELETE',
       headers: {
