@@ -143,9 +143,9 @@ function displayIncidents(incidents) {
             <div class="flex justify-between items-start">
                 <h3 class="text-xl font-semibold text-indigo-600">${incident.title}</h3>
                 <div class="space-x-2">
-                    <button onclick="showEditModal('${incident.id}')" class="text-blue-600 hover:text-blue-800">Edit</button>
-                    <button onclick="showDeleteConfirm('${incident.id}')" class="text-red-600 hover:text-red-800">Delete</button>
-                    <button onclick="handleEscalate('${incident.id}')" class="text-yellow-600 hover:text-yellow-800">Escalate</button>
+                    <button onclick="showEditModal('${incident.id}')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Edit</button>
+                    <button onclick="showDeleteConfirm('${incident.id}')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Delete</button>
+                    <button onclick="handleEscalate('${incident.id}')" class="px-3 py-1 text-sm font-medium text-white bg-yellow-500 rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400">Escalate</button>
                 </div>
             </div>
             <p class="text-gray-600 mt-2">${incident.description || 'No description'}</p>
