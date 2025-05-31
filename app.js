@@ -51,6 +51,7 @@ app.post('/api/login', async (req, res) => {
     }
   } catch (error) {
     console.error('Proxy login error:', error);
+    
     res.status(500).json({ error: 'Internal server error during login proxy.' });
   }
 });
@@ -232,7 +233,22 @@ app.post('/api/logout', (req, res) => {
   res.status(200).json({ message: 'Logged out successfully.' });
 });
 
+// Function to test backend connectivity
+async function testBackendConnection() {
+  try {
+    const fetch = (await import('node-fetch')).default;
+    const response = await fetch(BACKEND_API_URL); // Or a specific health check endpoint
+    if (response.ok) {
+      console.log(`Successfully connected to backend at ${BACKEND_API_URL}. Status: ${response.status}`);
+    } else {
+      console.error(`Failed to connect to backend at ${BACKEND_API_URL}. Status: ${response.status}`);
+    }
+  } catch (error) {
+    console.error(`Error connecting to backend at ${BACKEND_API_URL}:`, error.message);
+  }
+}
 
 app.listen(port, () => {
   console.log(`Frontend proxy server listening on port ${port}`);
+  testBackendConnection(); // Call the test function when the server starts
 });
