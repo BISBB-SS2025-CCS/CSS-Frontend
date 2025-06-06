@@ -251,5 +251,6 @@ async function testBackendConnection() {
 
 app.listen(port, () => {
   console.log(`Frontend proxy server listening on port ${port}`);
+  console.log('DEBUG ENV:', Object.entries(process.env));
   testBackendConnection(); // Call the test function when the server starts
 });
