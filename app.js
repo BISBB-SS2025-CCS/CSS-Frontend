@@ -67,6 +67,7 @@ app.post('/api/register', async (req, res) => {
       body: JSON.stringify({ username, password }),
     });
 
+    
     // Log the full response for debugging
     console.log('Backend Response Status:', backendResponse.status);
     console.log('Backend Response Headers:', Object.fromEntries(backendResponse.headers.entries()));
