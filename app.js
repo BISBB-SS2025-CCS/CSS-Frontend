@@ -152,6 +152,8 @@ app.get('/api/incidents', proxyAuthenticate, handleGetIncidents);
 // Route for getting a specific incident by ID
 app.get('/api/incidents/:id', proxyAuthenticate, handleGetIncidents);
 
+app.get('/api/escalate/:id', proxyAuthenticate, handleEscalate);
+
 app.post('/api/incidents', proxyAuthenticate, async (req, res) => {
   try {
     const fetch = (await import('node-fetch')).default; // Dynamic import
