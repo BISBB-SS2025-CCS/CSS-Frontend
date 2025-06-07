@@ -152,7 +152,7 @@ app.get('/api/incidents', proxyAuthenticate, handleGetIncidents);
 // Route for getting a specific incident by ID
 app.get('/api/incidents/:id', proxyAuthenticate, handleGetIncidents);
 
-app.get('/api/escalate/:id', proxyAuthenticate, handleEscalate);
+// app.get('/api/escalate/:id', proxyAuthenticate, handleEscalate);
 
 app.post('/api/incidents', proxyAuthenticate, async (req, res) => {
   try {
@@ -250,6 +250,33 @@ async function testBackendConnection() {
     console.error(`Error connecting to backend at ${BACKEND_API_URL}:`, error.message);
   }
 }
+
+const handleEscalate = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const fetch = (await import('node-fetch')).default;
+    const backendResponse = await fetch(`${BACKEND_API_URL}/api/escalate/${id}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${req.backendToken}`,
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (backendResponse.status === 401 || backendResponse.status === 403) {
+      res.clearCookie('jwtToken');
+      return res.status(backendResponse.status).json({ error: 'Session expired or invalid token. Please log in again.' });
+    }
+
+    const data = await backendResponse.json();
+    res.status(backendResponse.status).json(data);
+  } catch (error) {
+    console.error('Proxy escalate error:', error);
+    res.status(500).json({ error: 'Internal server error during escalation proxy.' });
+  }
+};
+
+app.post('/api/escalate/:id', proxyAuthenticate, handleEscalate);
 
 app.listen(port, () => {
   console.log(`Frontend proxy server listening on port ${port}`);

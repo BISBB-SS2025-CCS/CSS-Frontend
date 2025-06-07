@@ -252,14 +252,10 @@ function showDeleteConfirm(id) {
 }
 
 async function handleEscalate(id) {
-    // For now, this function does nothing as requested.
-    // You can add functionality here later.
-    console.log(`Escalate incident with ID: ${id}`);
-    // Example: alert(`Incident ${id} escalated (not really yet!)`);
-    event.preventDefault();
-
     try {
-        const response = fetch(`/api/escalate/${id}`);
+        const response = await fetch(`/api/escalate/${id}`, {
+            method: 'POST'
+        });
 
         if (response.status === 401) {
             showAuth();
@@ -267,12 +263,15 @@ async function handleEscalate(id) {
         }
 
         if (response.ok) {
-            console.log(`Escalated incident with ID: ${id}`);
+            // Optionally show a message or refresh incidents
+            alert(`Incident ${id} escalated successfully!`);
+            fetchIncidents();
         } else {
-            console.error(`Failed to escalate incident`, response.status);
+            const data = await response.json();
+            alert(`Failed to escalate incident: ${data.error || response.status}`);
         }
     } catch (error) {
-        console.error(`Failed to escalate incident`, error);
+        alert(`Failed to escalate incident: ${error}`);
     }
 }
 
