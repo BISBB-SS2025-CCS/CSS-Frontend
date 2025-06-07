@@ -256,6 +256,24 @@ async function handleEscalate(id) {
     // You can add functionality here later.
     console.log(`Escalate incident with ID: ${id}`);
     // Example: alert(`Incident ${id} escalated (not really yet!)`);
+    event.preventDefault();
+
+    try {
+        const response = fetch(`/api/escalate/${id}`);
+
+        if (response.status === 401) {
+            showAuth();
+            return;
+        }
+
+        if (response.ok) {
+            console.log(`Escalated incident with ID: ${id}`);
+        } else {
+            console.error(`Failed to escalate incident`, response.status);
+        }
+    } catch (error) {
+        console.error(`Failed to escalate incident`, error);
+    }
 }
 
 async function handleConfirmDelete() {
